@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Map with Leaflet and Timeline</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #timeline-container {
+            width: 100%;
+            position: fixed;
+            top: 0;
+            z-index: 1000;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        #timeline {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            overflow-x: auto;
+        }
+
+        #timeline .year {
+            cursor: pointer;
+            padding: 5px 10px;
+            margin: 0 5px;
+            border-radius: 3px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        #timeline .year.active {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+        }
+
+        #timeline .year.disabled {
+            color: #d3d3d3;
+            text-decoration: line-through;
+            pointer-events: none;
+        }
+
+        #map {
+            margin-top: 60px;
+            height: calc(100vh - 60px);
+            width: 100%;
+        }
+
+        @media (min-width: 768px) {
+            #timeline {
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="timeline-container">
+        <div id="timeline" onclick="toggleYear(event)">
+            <div class="year" data-year="1878">1878</div>
+            <div class="year" data-year="1879">1879</div>
+            <div class="year" data-year="1880">1880</div>
+            <div class="year" data-year="1881">1881</div>
+            <div class="year" data-year="1882">1882</div>
+            <div class="year" data-year="1883">1883</div>
+            <div class="year" data-year="1884">1884</div>
+            <div class="year" data-year="1885">1885</div>
+            <div class="year" data-year="1886">1886</div>
+            <div class="year" data-year="1887">1887</div>
+            <div class="year" data-year="1888">1888</div>
+            <div class="year" data-year="1889">1889</div>
+            <div class="year" data-year="1890">1890</div>
+            <div class="year" data-year="1891">1891</div>
+            <div class="year" data-year="1892">1892</div>
+            <div class="year" data-year="1893">1893</div>
+            <div class="year" data-year="1894">1894</div>
+            <div class="year" data-year="1895">1895</div>
+            <div class="year" data-year="1896">1896</div>
+            <div class="year" data-year="1897">1897</div>
+            <div class="year" data-year="1898">1898</div>
+            <div class="year" data-year="1899">1899</div>
+            <div class="year" data-year="1900">1900</div>
+            <div class="year" data-year="1901">1901</div>
+            <div class="year" data-year="1902">1902</div>
+            <div class="year" data-year="1903">1903</div>
+            <div class="year" data-year="1904">1904</div>
+            <div class="year" data-year="1905">1905</div>
+            <div class="year" data-year="1906">1906</div>
+            <div class="year" data-year="1907">1907</div>
+            <div class="year" data-year="1908">1908</div>
+            <div class="year" data-year="1909">1909</div>
+            <div class="year" data-year="1910">1910</div>
+            <div class="year" data-year="1911">1911</div>
+            <div class="year" data-year="1912">1912</div>
+            <div class="year" data-year="1913">1913</div>
+            <div class="year" data-year="1914">1914</div>
+            <div class="year" data-year="1915">1915</div>
+            <div class="year" data-year="1916">1916</div>
+            <div class="year" data-year="1917">1917</div>
+        </div>
+    </div>
+
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        var selectedYear = null;
+        var map = L.map('map').setView([0, 0], 2);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        var pois = [
+            { name: '10 January, 1878', location: [51.5309383, -0.0274853], year: 1878, details: '<br>Frederick William Lewis was born in the Tower Division of the County of Middlesex (generally analagous to the modern London Borough of Tower Hamlets) to Thomas Stoodley Lewis and Caroline Ann Lee. <br><br>His military records attest his birth took place in the parish of Bow, yet census records suggest it may have actually been in the parish of Bethnal Green.' },
+            { name: '3 February, 1878', location: [51.528205, -0.044246], year: 1878, details: '<br>Frederick, as well as his sister, Emily Alexandra, were baptised in the parish of Saint Simon Zelotes, Bethnal Green. <br><br> The church grounds, following the destruction of the church as a result of the bombings over London during World War II, now play host to a series of housing units, a community allotment, and the Meath Gardens.' },
+            { name: '3 April, 1881', location: [51.528766, -0.046443], year: 1881, details: '<br>Frederick William Lewis, aged three, was recorded in the United Kingdom Census of 1881 as residing at 31 Moss Street, Bethnal Green along with his father, Thomas, his mother, Caroline, and a infant sister, Sarah Ann. <br><br>The absence of any mention of his previously acknowledged sister, Emily Alexandra, suggests the probability that she may have succumbed to the high infant mortality that plagued London, particularly the East End, during the 19th and early-20th centuries. <br><br>Moss Street was renamed to Usk Street in ????.' },
+            { name: '28 May, 1896', location: [50.805832, -1.087222], year: 1896, details: '<br>Frederick William Lewis enlisted—as a Private—with the Royal Marine Light Infantry (RMLI) in London on May 28, 1896.' },
+            { name: '30 November, 1897', location: [50.805832, -1.087222], year: 1897, details: '<br>Pvt. Frederick William Lewis embarked upon HMS &apos;Porpoise&apos; as it mustered for its impending assignment to the Australia Station.' },
+            { name: '11 December, 1897', location: [50.805832, -1.087222], year: 1897, details: '<br>H.M.S. &apos;Porpoise&apos; left Portsmouth to relieve HMS &apos;Pylades&apos; on the Australia Station via the Torres Strait route (<i>Leader</i>, 29 Jan 1898, p. 6; <i>Daily Telegraph</i>, 12 Jan 1898, p. 7).' },
+            { name: '25-31 January, 1898', location: [6.926976, 79.861547], year: 1898, details: '<br>Colombo.—Porpoise arrived Jan. 25 and will leave Jan. 31 (<i>Army and Navy Gazette</i>, 29 Jan 1898, p. 20).' },
+            { name: '16 February, 1901', location: [-34.929420130571074, 138.59908471855513], year: 1901, details: '<br>HMS &apos;Porpoise&apos; left Adelaide for Sydney (<i>Sunday Times</i>, 17 Feb 1901, p. 6).' },
+            { name: '19 February, 1901', location: [-33.86903, 151.2093], year: 1901, details: '<br>While en route from Adelaide to Sydney, HMS &apos;Porpoise&apos; signaled its position near Wilson&apos;s Promontory (<i>Daily Telegraph</i>, 20 Feb 1901, p. 1).' },
+            { name: '23 February, 1901', location: [-33.86903, 151.2093], year: 1901, details: '<br>Pvt. Frederick William Lewis paid off his remaining commission, for the sum of ?, and received his final discharge from the RMLI. His service record notes that he &apos;went ashore&apos; in Sydney.' },
+            { name: '24 July, 1901', location: [-42.88078, 147.32438], year: 1901, details: '<br>Frederick William Lewis married Mabel Louise Ricketts at the Melville Street Wesleyan Church in Hobart, Tasmania.' },
+            { name: '10 February, 1916', location: [-42.79273171878011, 147.25810257965895], year: 1916, details: '<br>Frederick William Lewis enlisted—as a Sergeant of 40th Battalion&apos;s "B" Company, Third Division—with the Australian Imperial Force (A.I.F.)' },
+            { name: '1 July, 1916', location: [-42.881482, 147.337787], year: 1916, details: '<br>Sgt. Frederick William Lewis—along with the rest of the 40th Battalion—embarked aboard the HMAT &apos;Berrima&apos; A35, departing from Hobart for Plymouth, England.' },
+            { name: '22 August, 1916', location: [50.36901, -4.1813], year: 1916, details: '<br>HMAT A35, transporting Frederick William Lewis and the 40th Battalion, arrived in Devonport, Plymouth, England.' },
+            { name: 'August-November, 1916', location: [51.2469, -1.8948], year: 1916, details: '<br>The 40th Battalion undergoes rigorous training at Salisbury Plain. Eager to depart for France, the battalion prepares to leave the strenuous training behind.' },
+            { name: '23 November, 1916', location: [50.91055465018745, -1.404827262779123], year: 1916, details: '<br>The battalion travels to Southampton and embarks on a cross-channel transport to France.' },
+            { name: '24 November, 1916', location: [49.49436418327132, 0.10791194464155172], year: 1916, details: '<br>Disembarking at Le Havre, the battalion endured a difficult march to a &apos;nearby&apos; rest camp under challenging conditions.' },
+            { name: '31 January, 1917', location: [50.68537886213352, 2.880606691589708], year: 1917, details: '<br>Sergeant Frederick William Lewis was wounded during a German raid on the trenches of the 40th Battalion near Armentières, Nord, France.' },
+            { name: 'Death & Burial', location: [50.704542730604295, 2.802274849207412], year: 1917, details: '<br>Following his wounding, Frederick William Lewis was transported to the Australian Second Casualty Clearing Station (in the village of Trois Arbres) whereupon he succumbed to his injuries (compound fracture of the skull). <br><br>He was buried in the Trois Arbres Cemetery, Steenwerck, Nord France.' },
+        ];
+
+        var route = null;
+        var routeCoordinates = [
+            [50.805832, -1.087222], // Portsmouth
+            [6.926976, 79.861547], // Colombo
+            [-33.86903, 151.2093]  // Sydney
+        ];
+
+        var markerLayer = L.layerGroup().addTo(map);
+
+        var yearsWithMarkers = Array.from(new Set(pois.map(poi => poi.year)));
+
+        function drawRoute() {
+            if (!route) {
+                route = L.polyline(routeCoordinates, { color: 'blue' }).addTo(map);
+                map.fitBounds(route.getBounds());
+            }
+        }
+
+        function removeRoute() {
+            if (route) {
+                map.removeLayer(route);
+                route = null;
+            }
+        }
+
+        function updateTimeline() {
+            var years = document.querySelectorAll('#timeline .year');
+            years.forEach(function (el) {
+                var elYear = parseInt(el.getAttribute("data-year"));
+                if (yearsWithMarkers.includes(elYear)) {
+                    el.classList.remove('disabled');
+                } else {
+                    el.classList.add('disabled');
+                }
+
+                if (elYear === selectedYear) {
+                    el.classList.add('active');
+                } else {
+                    el.classList.remove('active');
+                }
+            });
+        }
+
+        function addMarkers(year = null) {
+            markerLayer.clearLayers();
+            var bounds = map.getBounds();
+            var minIteration = Math.floor(bounds.getWest() / 360);
+            var maxIteration = Math.ceil(bounds.getEast() / 360);
+
+            pois.forEach(function (poi) {
+                if (!year || poi.year === year) {
+                    var lat = poi.location[0];
+                    var lon = poi.location[1];
+                    for (let i = minIteration; i <= maxIteration; i++) {
+                        let shiftedLon = lon + i * 360;
+                        let marker = L.marker([lat, shiftedLon]);
+                        marker.bindPopup(`<strong>${poi.name} (${poi.year})</strong><br>${poi.details}`);
+                        markerLayer.addLayer(marker);
+                    }
+                }
+            });
+
+            if (year === 1897 || year === 1898) {
+                drawRoute();
+            } else {
+                removeRoute();
+            }
+
+            updateTimeline();
+        }
+
+        map.on('moveend', function () {
+            addMarkers(selectedYear);
+        });
+
+        addMarkers();
+
+        function toggleYear(event) {
+            var target = event.target;
+            if (!target.classList.contains("year") || target.classList.contains("disabled")) {
+                return;
+            }
+
+            var year = parseInt(target.getAttribute("data-year"));
+            if (selectedYear === year) {
+                selectedYear = null;
+                addMarkers();
+            } else {
+                selectedYear = year;
+                addMarkers(year);
+            }
+        }
+    </script>
+</body>
+</html>
